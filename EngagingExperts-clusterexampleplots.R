@@ -12,6 +12,7 @@ library(texreg)
 library(reshape2)
 library(conquer)
 library(MCMCpack)
+library(fields)
 rm(list = ls())
 sourceCpp("eliciteddp-Rcpp.cpp")
 source("bayeslm.R")
@@ -41,9 +42,9 @@ beta <- matrix(Priors,k,n) # normal with variance from inverse gamma
 # max.sim.var <- 25
 x <- matrix(rnorm(k*m),m,k)
 y <- x %*% beta[,cluster] + matrix(rnorm(n*m),m,n) + matrix(rnorm(n*m,0,sqrt((x^2) %*% sigma[,cluster])),m,n) #m, n
-   # for capped variance:
-   # y <- x %*% beta[,cluster] + matrix(rnorm(n*m),m,n) + 
-         # matrix(rnorm(n*m,0,sqrt((x^2) %*% apply(sigma,1:2,pmin,max.sim.var)[,cluster])),m,n)
+# for capped variance:
+# y <- x %*% beta[,cluster] + matrix(rnorm(n*m),m,n) + 
+# matrix(rnorm(n*m,0,sqrt((x^2) %*% apply(sigma,1:2,pmin,max.sim.var)[,cluster])),m,n)
 
 samples <- elicited(y, x, discrete=FALSE,
                     max_iter=10000, thin=10, burn_in=1000,
@@ -60,25 +61,25 @@ same.cluster <- function(x) rep(x, each=length(x)) == rep(x, times=length(x))
 ###########################
 
 # n, m, k = 20, 10, 10 
-pdf("../figures/clusterexamples-201010.pdf", width = 6, height = 3.5)
-par(mfcol=c(1,2))
+pdf("../figures/clusterexamples-201010.pdf", width = 7, height = 3.5)
+par(mfcol=c(1,2), mar = c(4.1, 4.1, 4.1, 5))
 ## Estimate of probability of experts being in same cluster
 sam<-round(matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]])),1)
-image(1:nrow(samples[[1]]),
-      1:nrow(samples[[1]]),
-      matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
-      main = "Estimated probability\nof Same Cluster",
-      xlab="Expert", ylab="Expert",
-      col=gray.pal)
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
+           main = "Estimated probability\nof Same Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
 
 ## Truth of which experts are in same cluster
 true<-round(matrix(same.cluster(cluster), length(cluster)),1)
-image(1:nrow(samples[[1]]),
-      1:nrow(samples[[1]]),
-      matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
-      main = "Truth of Whether in\nSame Cluster",
-      xlab="Expert", ylab="Expert",
-      col=gray.pal)
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
+           main = "Truth of Whether in\nSame Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
 sum(abs(true-sam))
 dev.off()
 
@@ -110,27 +111,27 @@ samples <- elicited(y, x, discrete=FALSE,
 same.cluster <- function(x) rep(x, each=length(x)) == rep(x, times=length(x))
 
 # n, m, k = 10, 20, 5
-pdf("../figures/clusterexamples-10205.pdf", width = 6, height = 3.5)
-par(mfcol=c(1,2))
+pdf("../figures/clusterexamples-10205.pdf", width = 7, height = 3.5)
+par(mfcol=c(1,2), mar = c(4.1, 4.1, 4.1, 5))
 ## Estimate of probability of experts being in same cluster
 sam<-round(matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]])),1)
-image(1:nrow(samples[[1]]),
-      1:nrow(samples[[1]]),
-      matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
-      main = "Estimated probability\nof Same Cluster",
-      xlab="Expert", ylab="Expert",
-      col=gray.pal)
-      
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
+           main = "Estimated probability\nof Same Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
+
 ## Truth of which experts are in same cluster
 true<-round(matrix(same.cluster(cluster), length(cluster)),1)
-image(1:nrow(samples[[1]]),
-      1:nrow(samples[[1]]),
-      matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
-      main = "Truth of Whether in\nSame Cluster",
-      xlab="Expert", ylab="Expert",
-      col=gray.pal)
-      sum(abs(true-sam))
-      dev.off()
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
+           main = "Truth of Whether in\nSame Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
+sum(abs(true-sam))
+dev.off()
 
 # n, m, k = 10, 10, 10      
 n <- 10    ## number of experts
@@ -150,32 +151,32 @@ x <- matrix(rnorm(k*m),m,k)
 y <- x %*% beta[,cluster] + matrix(rnorm(n*m),m,n) + matrix(rnorm(n*m,0,sqrt((x^2) %*% sigma[,cluster])),m,n) #m, n
 #y <- x %*% beta[,cluster] + matrix(rnorm(n*m),m,n) + matrix(rnorm(n*m,0,sqrt((x^2) %*% apply(sigma,1:2,pmin,max.sim.var)[,cluster])),m,n)
 samples <- elicited(y, x, discrete=FALSE,
-                          max_iter=10000, thin=10, burn_in=1000,
-                          prior_lambda = diag(ncol(x)),
-                          prior_mu = rep(0, ncol(x)),
-                          prior_alpha = 1,
-                          prior_beta = 1,
-                          concentration = alpha)
+                    max_iter=10000, thin=10, burn_in=1000,
+                    prior_lambda = diag(ncol(x)),
+                    prior_mu = rep(0, ncol(x)),
+                    prior_alpha = 1,
+                    prior_beta = 1,
+                    concentration = alpha)
 same.cluster <- function(x) rep(x, each=length(x)) == rep(x, times=length(x))
-      
-pdf("../figures/clusterexamples-101010.pdf", width = 6, height = 3.5)
-par(mfcol=c(1,2))
+
+pdf("../figures/clusterexamples-101010.pdf", width = 7, height = 3.5)
+par(mfcol=c(1,2), mar = c(4.1, 4.1, 4.1, 5))
 ## Estimate of probability of experts being in same cluster
 sam <- round(matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]])),1)
-image(1:nrow(samples[[1]]),
-            1:nrow(samples[[1]]),
-            matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
-            main = "Estimated probability\nof Same Cluster",
-            xlab="Expert", ylab="Expert",
-            col=gray.pal)
-      
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(apply(apply(samples[[1]], 2, same.cluster), 1, mean), nrow(samples[[1]]))[order(cluster),order(cluster)],
+           main = "Estimated probability\nof Same Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
+
 ## Truth of which experts are in same cluster
 true<-round(matrix(same.cluster(cluster), length(cluster)),1)
-image(1:nrow(samples[[1]]),
-            1:nrow(samples[[1]]),
-            matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
-            main = "Truth of Whether in\nSame Cluster",
-            xlab="Expert", ylab="Expert",
-            col=gray.pal)
+image.plot(1:nrow(samples[[1]]),
+           1:nrow(samples[[1]]),
+           matrix(same.cluster(cluster), length(cluster))[order(cluster), order(cluster)],
+           main = "Truth of Whether in\nSame Cluster",
+           xlab="Expert", ylab="Expert",
+           col=gray.pal)
 sum(abs(true-sam))
 dev.off()
